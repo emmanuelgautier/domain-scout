@@ -27,10 +27,6 @@ func getRequest(url string) (*http.Response, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode == http.StatusUpgradeRequired {
-
-	}
-
 	return resp, nil
 }
 
@@ -53,6 +49,7 @@ func IsAddrHTTPSReachable(addr string) (*Reachable, error) {
 }
 
 func IsAddrReachable(addr string) (*Reachable, error) {
+	//gosec:disable G402
 	tlsConn, err := tls.Dial("tcp", "https://"+addr, &tls.Config{})
 	if err != nil {
 		return IsAddrHTTPReachable(addr)

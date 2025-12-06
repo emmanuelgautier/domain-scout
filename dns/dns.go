@@ -23,7 +23,7 @@ func (hostRecords HostRecords) String() string {
 	for i, record := range hostRecords.Records {
 		joinRecords = joinRecords + record.Type + " " + record.Value
 		if i < len(hostRecords.Records)-1 {
-			joinRecords = joinRecords + " "
+			joinRecords += " "
 		}
 	}
 
@@ -58,7 +58,7 @@ func LookupHosts(ctx context.Context, hosts []string) ([]HostRecords, error) {
 
 func LookupHost(host string) ([]Record, error) {
 	if !strings.HasSuffix(host, ".") {
-		host = host + "."
+		host += "."
 	}
 
 	records := make([]Record, 0)

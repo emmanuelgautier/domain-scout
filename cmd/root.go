@@ -75,8 +75,15 @@ var subdomainAvailableCmd = &cobra.Command{
 			}),
 		)
 		table.Header([]string{"Domain", "Available", "Records", "HTTP Response"})
-		table.Bulk(data)
-		table.Render()
+		err = table.Bulk(data)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = table.Render()
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
