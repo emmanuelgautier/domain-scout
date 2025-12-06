@@ -1,34 +1,92 @@
 package cmd
 
 import (
-	"fmt"
+	"bufio"
+	"log"
 	"os"
+	"regexp"
 
+	"github.com/emmanuelgautier/domain-scout/scout"
+	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/spf13/cobra"
 )
 
+func extractDomains(input string) []string {
+	regex := regexp.MustCompile(`(?m)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`)
+	matches := regex.FindAllString(input, -1)
+	return matches
+}
+
+var subdomainAvailableCmd = &cobra.Command{
+	Use:   "subdomain-available",
+	Short: "Check if subdomains are available",
+	Run: func(cmd *cobra.Command, args []string) {
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		domains := extractDomains(input)
+		availabilities, err := scout.CheckAvailability(cmd.Context(), domains)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var data [][]string
+		for _, availability := range availabilities {
+			if len(availability.Records.Records) == 0 {
+				data = append(data, []string{
+					availability.Domain,
+					"Yes",
+					"",
+					"",
+				})
+				continue
+			}
+
+			var httpResponse = ""
+			if availability.IsRootHTTPReachable != nil {
+				httpResponse = availability.IsRootHTTPReachable.String()
+			}
+
+			for _, record := range availability.Records.Records {
+				data = append(data, []string{
+					availability.Domain,
+					"No",
+					"(" + record.Type + ") " + record.Value,
+					httpResponse,
+				})
+			}
+		}
+
+		table := tablewriter.NewTable(os.Stdout,
+			tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{
+				Settings: tw.Settings{Separators: tw.Separators{BetweenRows: tw.On}},
+			})),
+			tablewriter.WithConfig(tablewriter.Config{
+				Header: tw.CellConfig{Alignment: tw.CellAlignment{Global: tw.AlignCenter}},
+				Row: tw.CellConfig{
+					Merging:   tw.CellMerging{Mode: tw.MergeBoth},
+					Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+				},
+			}),
+		)
+		table.Header([]string{"Domain", "Available", "Records", "HTTP Response"})
+		table.Bulk(data)
+		table.Render()
+	},
+}
+
 func NewRootCmd() (cmd *cobra.Command) {
 	var rootCmd = &cobra.Command{
-		Use:   "go-cli-template",
-		Short: "A simple Go CLI template.",
+		Use:   "domain-scout",
+		Short: "Scan domains and subdomains",
 	}
 
-	var helloCmd = &cobra.Command{
-		Use:   "hello",
-		Short: "Prints a friendly greeting",
-		Run: func(cmd *cobra.Command, args []string) {
-			name, _ := cmd.Flags().GetString("name")
-			if name == "" {
-				fmt.Println("Hello, World!")
-			} else {
-				fmt.Printf("Hello, %s!\n", name)
-			}
-		},
-	}
-
-	helloCmd.Flags().StringP("name", "n", "", "Specify a name")
-
-	rootCmd.AddCommand(helloCmd)
+	rootCmd.AddCommand(subdomainAvailableCmd)
 
 	return rootCmd
 }

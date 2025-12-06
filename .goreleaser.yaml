@@ -40,16 +40,16 @@ changelog:
       - "^test:"
 
 # snapcrafts:
-#   - title: go-cli-template
+#   - title: domain-scout
 #     publish: true
-#     summary: "go-cli-template"
-#     description: "go-cli-template"
+#     summary: "domain-scout"
+#     description: "domain-scout"
 #     license: MIT
 
 dockers:
   - image_templates:
-      - "ghcr.io/emmanuelgautier/go-cli-template:{{ .Tag }}"
-      - "ghcr.io/emmanuelgautier/go-cli-template:v{{ .Major }}"
-      - "ghcr.io/emmanuelgautier/go-cli-template:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/emmanuelgautier/go-cli-template:latest"
+      - "ghcr.io/emmanuelgautier/domain-scout:{{ .Tag }}"
+      - "ghcr.io/emmanuelgautier/domain-scout:v{{ .Major }}"
+      - "ghcr.io/emmanuelgautier/domain-scout:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/emmanuelgautier/domain-scout:latest"
     dockerfile: .docker/Dockerfile-goreleaser
