@@ -1,7 +1,6 @@
 package http
 
 import (
-	"crypto/tls"
 	"net/http"
 )
 
@@ -49,8 +48,7 @@ func IsAddrHTTPSReachable(addr string) (*Reachable, error) {
 }
 
 func IsAddrReachable(addr string) (*Reachable, error) {
-	//gosec:disable G402
-	tlsConn, err := tls.Dial("tcp", "https://"+addr, &tls.Config{})
+	tlsConn, err := tlsDialer.Dial("tcp", addr+":443")
 	if err != nil {
 		return IsAddrHTTPReachable(addr)
 	}
