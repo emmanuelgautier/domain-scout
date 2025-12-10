@@ -12,6 +12,10 @@ type Reachable struct {
 }
 
 func (r *Reachable) String() string {
+	if r.Response == nil {
+		return "Unreachable through HTTP(" + r.Addr + ":80) and HTTPs(" + r.Addr + ":443)"
+	}
+
 	var reachableStr = r.Response.Proto + " " + r.Addr + ": " + r.Response.Status + " "
 	if r.Response.StatusCode >= 300 && r.Response.StatusCode < 400 {
 		reachableStr = reachableStr + "Redirect to " + r.Response.Header.Get("Location")
@@ -23,7 +27,7 @@ func (r *Reachable) String() string {
 func getRequest(url string) (*http.Response, error) {
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	return resp, nil
@@ -32,7 +36,7 @@ func getRequest(url string) (*http.Response, error) {
 func IsAddrHTTPReachable(addr string) (*Reachable, error) {
 	res, err := getRequest("http://" + addr)
 	if err != nil {
-		return nil, err
+		return &Reachable{Addr: addr, Response: res}, err
 	}
 
 	return &Reachable{Addr: addr, Response: res}, nil
@@ -41,7 +45,7 @@ func IsAddrHTTPReachable(addr string) (*Reachable, error) {
 func IsAddrHTTPSReachable(addr string) (*Reachable, error) {
 	res, err := getRequest("https://" + addr)
 	if err != nil {
-		return nil, err
+		return &Reachable{Addr: addr, Response: res}, err
 	}
 
 	return &Reachable{Addr: addr, Response: res, HTTPsEnabled: true}, nil
