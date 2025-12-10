@@ -1,0 +1,3 @@
+example.com
+subdomain1.example.com
+subdomain2.example.com
