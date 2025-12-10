@@ -23,16 +23,22 @@ var subdomainAvailableCmd = &cobra.Command{
 	Use:   "subdomain-available",
 	Short: "Check if subdomains are available",
 	Run: func(cmd *cobra.Command, args []string) {
-		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
+		reader := bufio.NewScanner(os.Stdin)
+		var input string
+		for reader.Scan() {
+			input += reader.Text() + "\n"
+		}
+
+		if reader.Err() != nil {
+			log.Fatal(reader.Err())
+			return
 		}
 
 		domains := extractDomains(input)
 		availabilities, err := scout.CheckAvailability(cmd.Context(), domains)
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
 
 		var data [][]string
@@ -78,11 +84,13 @@ var subdomainAvailableCmd = &cobra.Command{
 		err = table.Bulk(data)
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
 
 		err = table.Render()
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
 	},
 }
